@@ -10,11 +10,11 @@ server = smtplib.SMTP("smtp.gmail.com", 587)
 
 server.starttls()
 
-server.login('logan.brownie66@gmail.com', 'Ltb122333')
+###server.login('logan.brownie66@gmail.com', 'Ltb122333')
 
 # Send text message through SMS gateway of destination number
 
-server.sendmail('logan.brownie66@gmail.com', '3195308365@email.uscc.net', 'Salutations')
+###server.sendmail('logan.brownie66@gmail.com', '3195308365@email.uscc.net', 'Salutations')
 
 server.quit()
 
