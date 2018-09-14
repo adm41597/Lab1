@@ -11,11 +11,11 @@ from bokeh.models.sources import AjaxDataSource
 output_file("ajax_source.html", title="ajax_source.py example")
 
 source = AjaxDataSource(data_url='http://localhost:5050/data',
-                        polling_interval=100, mode='append')
-p = figure(plot_height=800, plot_width=1200, y_range=(30,100), #background_fill_color="lightgrey",
+                        polling_interval=100)
+p = figure(plot_height=800, plot_width=1200, background_fill_color="lightgrey",
            title="Streaming Noisy sin(x) via Ajax")
 
-p.circle(x='x', y='y', source=source)
+p.circle('x', 'y', source=source)
 
 p.x_range.follow = "end"
 p.x_range.follow_interval = 10
