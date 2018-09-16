@@ -1,6 +1,6 @@
 from bokeh.layouts import layout
 from bokeh.plotting import figure, output_file, show
-from bokeh.models import Button, Slider, TextInput, WidgetBox, AjaxDataSource
+from bokeh.models import Button, Slider, TextInput, WidgetBox, AjaxDataSource, Toggle, error, PreText
 import smtplib
 
 import numpy as np
@@ -9,24 +9,13 @@ from functools import update_wrapper, wraps
 from six import string_types
 
 output_file("line.html")
-# *** WORKS ***
-server = smtplib.SMTP("smtp.gmail.com", 587)
 
-server.starttls()
-
-###server.login('logan.brownie66@gmail.com', 'Ltb122333')
-
-# Send text message through SMS gateway of destination number
-
-###server.sendmail('logan.brownie66@gmail.com', '3195308365@email.uscc.net', 'Salutations')
-
-server.quit()
 
 source = AjaxDataSource(data_url='http://localhost:5050/data',
                         polling_interval=100)
 p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
-p.line('x', 'y', source=source, line_width=2)
-p.circle('x', 'y', source=source, fill_color="white", size=8)
+#p.line('x', 'y', source=source, line_width=2)
+#p.circle('x', 'y', source=source, fill_color="white", size=8)
 
 nan=float('nan')
 
@@ -37,24 +26,64 @@ try:
 except ImportError:
     raise ImportError("You need Flask to run this example!")
 
-def slider():
-    slider1 = Slider(start=-15, end=60, value=0, step=.1, title ="High Temp")
-    slider2 = Slider(start=-15, end=60, value=0, step=.1, title ="Low Temp")
-    widgets = WidgetBox(slider1, slider2)
-    return widgets
+def highSlider():
+    slider1 = Slider(start=10, end=50, value=30, step=.5, title ="High Temp")
+    return slider1
 
+def lowSlider():
+    slider2 = Slider(start=10, end=50, value=30, step=.5, title="Low Temp")
+    return slider2
 
 def text():
     text_input = TextInput(value="test", title="Phone#")
     return text_input
 
+def lowText():
+    text_input = TextInput(value="It is cold.", title="Low Temperature Message")
+    return text_input
 
-def button():
-    button1 = Button(label="Units", button_type="success")
+def highText():
+    text_input = TextInput(value="It is hot.", title="High Temperature Message")
+    return text_input
+
+def unitToggle():
+    toggle1 = Toggle(label="Units", button_type="success")
+    return toggle1
+
+def lightToggle():
+    toggle2 = Toggle(label="Toggle Lights", button_type="success")
+    return toggle2
+
+def temperature():
+    button1 = Button(label="Temperature"+"°C", button_type="success")
     return button1
 
+#used to replace whats in layout if error occurs
+def errorMessage():
+    pre = PreText(text="""Your text is initialized with the 'text' argument.
 
-show(layout([[text(), button()], [slider()], p]))
+    The remaining Paragraph arguments are 'width' and 'height'. For this example,
+    those values are 500 and 100 respectively.""",
+                  width=500, height=100)
+    return pre
+
+show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(), lightToggle()], p]))
+
+def convertToF(temp):
+    return temp*(5/9)+32
+
+def sendMessage(num, message):
+    # smtp server for sending SMS
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+
+    server.starttls()
+
+    server.login('logan.brownie66@gmail.com', 'Ltb122333')
+
+    # Send text message through SMS gateway of destination number
+    server.sendmail('logan.brownie66@gmail.com', num+'@email.uscc.net', message)
+
+    server.quit()
 
 #########################################################
 # Flask server related
