@@ -1,35 +1,23 @@
-from bokeh.layouts import layout
-from bokeh.plotting import figure, output_file, show
-from bokeh.models import Button, Slider, TextInput, WidgetBox, AjaxDataSource
-import smtplib
-
 import numpy as np
 from datetime import timedelta
 from functools import update_wrapper, wraps
+from math import sin
+from random import random
 from six import string_types
 
-output_file("line.html")
-# *** WORKS ***
-server = smtplib.SMTP("smtp.gmail.com", 587)
+from bokeh.plotting import figure, show, output_file
+from bokeh.models.sources import AjaxDataSource
 
-server.starttls()
-
-###server.login('logan.brownie66@gmail.com', 'Ltb122333')
-
-# Send text message through SMS gateway of destination number
-
-###server.sendmail('logan.brownie66@gmail.com', '3195308365@email.uscc.net', 'Salutations')
-
-server.quit()
+output_file("ajax_source.html", title="ajax_source.py example")
 
 source = AjaxDataSource(data_url='http://localhost:5050/data',
                         polling_interval=100)
-p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
-p.line('x', 'y', source=source, line_width=2)
-p.circle('x', 'y', source=source, fill_color="white", size=8)
+p = figure(plot_height=800, plot_width=1200, background_fill_color="lightgrey",
+           title="Streaming Noisy sin(x) via Ajax")
 
-nan=float('nan')
+p.circle('x', 'y', source=source)
 
+p.x_range.follow = "end"
 p.x_range.follow_interval = 10
 
 try:
@@ -37,29 +25,15 @@ try:
 except ImportError:
     raise ImportError("You need Flask to run this example!")
 
-def slider():
-    slider1 = Slider(start=-15, end=60, value=0, step=.1, title ="High Temp")
-    slider2 = Slider(start=-15, end=60, value=0, step=.1, title ="Low Temp")
-    widgets = WidgetBox(slider1, slider2)
-    return widgets
-
-
-def text():
-    text_input = TextInput(value="test", title="Phone#")
-    return text_input
-
-
-def button():
-    button1 = Button(label="Units", button_type="success")
-    return button1
-
-
-show(layout([[text(), button()], [slider()], p]))
+show(p)
 
 #########################################################
 # Flask server related
 #
-# Taken from Bokeh ajax_source.py example.
+# The following code has no relation to bokeh and it's only
+# purpose is to serve data to the AjaxDataSource instantiated
+# previously. Flask just happens to be one of the python
+# web frameworks that makes it's easy and concise to do so
 #########################################################
 
 
@@ -118,16 +92,16 @@ def crossdomain(origin=None, methods=None, headers=None,
 
 app = Flask(__name__)
 
-x = list(range(0, 300))
-y = [0 for xx in x]
+x = list(np.arange(0, 6, 0.1))
+y = [sin(xx) + random() for xx in x]
+
 
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
-    n = np.random.randint(30, 101)
-    y.append(n)
-    y.pop(0)
-    return jsonify(x=x[-300:], y=y[-300:])
+    x.append(x[-1]+0.1)
+    y.append(sin(x[-1])+random())
+    return jsonify(x=x[-500:], y=y[-500:])
 
 
 if __name__ == "__main__":
