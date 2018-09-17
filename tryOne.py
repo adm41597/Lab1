@@ -1,7 +1,8 @@
 from bokeh.layouts import layout
 from bokeh.plotting import figure, output_file, show
-from bokeh.models import Button, Slider, TextInput, WidgetBox, AjaxDataSource, Toggle, error, PreText
+from bokeh.models import Button, Slider, TextInput, AjaxDataSource, Toggle, error, Paragraph
 import smtplib
+import re
 
 import numpy as np
 from datetime import timedelta
@@ -13,6 +14,8 @@ output_file("line.html")
 
 source = AjaxDataSource(data_url='http://localhost:5050/data',
                         polling_interval=100)
+
+
 p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
 #p.line('x', 'y', source=source, line_width=2)
 #p.circle('x', 'y', source=source, fill_color="white", size=8)
@@ -59,31 +62,21 @@ def temperature():
     return button1
 
 #used to replace whats in layout if error occurs
-def errorMessage():
-    pre = PreText(text="""Your text is initialized with the 'text' argument.
-
-    The remaining Paragraph arguments are 'width' and 'height'. For this example,
-    those values are 500 and 100 respectively.""",
-                  width=500, height=100)
+errorMessage = " "
+def errorMessage(message):
+    pre = Paragraph(text=message, width=500, height=100)
     return pre
 
-show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(), lightToggle()], p]))
 
-def convertToF(temp):
-    return temp*(5/9)+32
+show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
+             [unitToggle(), lightToggle()], p]))
 
-def sendMessage(num, message):
-    # smtp server for sending SMS
-    server = smtplib.SMTP("smtp.gmail.com", 587)
 
-    server.starttls()
+def my_toggle_handler():
+    #code to change light toggle with socket
+    lowSlider().value= 45.0
 
-    server.login('logan.brownie66@gmail.com', 'Ltb122333')
-
-    # Send text message through SMS gateway of destination number
-    server.sendmail('logan.brownie66@gmail.com', num+'@email.uscc.net', message)
-
-    server.quit()
+lightToggle().on_click(my_toggle_handler)
 
 #########################################################
 # Flask server related
@@ -150,13 +143,57 @@ app = Flask(__name__)
 x = list(range(0, 300))
 y = [0 for xx in x]
 
+hasChanged = True
+currValue = 0
+high = False
+
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
+
     n = np.random.randint(30, 101)
+
+    #might be backwards
+    if unitToggle().active:
+        n = convertToF(n)
+        text().value = n + "°F"
+    else:
+        text().value = n + "°C"
+    global hasChanged, currValue, high
+    if hasChanged and n > highSlider().value:
+        sendMessage(text().value, highText().value)
+        currValue=n
+        hasChanged = False
+    elif hasChanged and n < lowSlider().value:
+        sendMessage(text().value, lowText().value)
+        currValue = n
+        hasChanged = False
+
+    if high and n <= currValue-5:
+        hasChanged = True
+    elif not high and n >= currValue+5:
+        hasChanged = True
     y.append(n)
     y.pop(0)
     return jsonify(x=x[-300:], y=y[-300:])
+
+def convertToF(temp):
+    return temp*(5/9)+32
+
+def sendMessage(num, message):
+    re.sub('[0-9]', '', message)
+    if not message == '':
+        # smtp server for sending SMS
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+
+        server.starttls()
+
+        server.login('logan.brownie66@gmail.com', 'Ltb122333')
+
+        # Send text message through SMS gateway of destination number
+        server.sendmail('logan.brownie66@gmail.com', num+'@email.uscc.net', message)
+
+        server.quit()
 
 
 if __name__ == "__main__":
