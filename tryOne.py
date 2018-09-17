@@ -200,8 +200,8 @@ def hello_world():
     santa = s.recv(1024)
     n = repr(santa)
     f = n.split("'")
-    g = f[1]
-    y.append(g)
+    h = f[1]
+    y.append(h)
     y.pop(0)
     #if n == 62:
         #y[-1] = nan
