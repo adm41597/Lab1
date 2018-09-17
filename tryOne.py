@@ -8,18 +8,43 @@ from datetime import timedelta
 from functools import update_wrapper, wraps
 from six import string_types
 
+import socket
+
+HOST = '192.168.1.88'
+PORT = 80
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+s.connect((HOST, PORT))
+s.sendall(b'p')
+data = s.recv(1024)
+
+
 output_file("line.html")
 
+nan = float('nan')
+x = True
 
 source = AjaxDataSource(data_url='http://localhost:5050/data',
-                        polling_interval=100)
+                        polling_interval=1000)
 p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
-#p.line('x', 'y', source=source, line_width=2)
-#p.circle('x', 'y', source=source, fill_color="white", size=8)
 
-nan=float('nan')
+#while x:
+#    while 'y'[-1] != nan:
+#        p.line('x', 'y', source=source, line_width=2)
+#        p.circle('x', 'y', source=source, fill_color="white", size=8)
 
-p.x_range.follow_interval = 10
+#        p.x_range.follow_interval = 10
+
+#        try:
+#            from flask import Flask, jsonify, make_response, request, current_app
+#        except ImportError:
+#            raise ImportError("You need Flask to run this example!")
+
+#        show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
+#                     [unitToggle(), lightToggle()], p]))
+
+#    'y'.append('y'[-2])
+#    'y'.pop(0)
 
 try:
     from flask import Flask, jsonify, make_response, request, current_app
@@ -67,7 +92,24 @@ def errorMessage():
                   width=500, height=100)
     return pre
 
-show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(), lightToggle()], p]))
+#while x:
+#    while 'y'[-1] != nan:
+p.line('x', 'y', source=source, line_width=2)
+p.circle('x', 'y', source=source, fill_color="white", size=8)
+
+p.x_range.follow_interval = 10
+
+try:
+    from flask import Flask, jsonify, make_response, request, current_app
+except ImportError:
+    raise ImportError("You need Flask to run this example!")
+
+show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
+                     [unitToggle(), lightToggle()], p]))
+
+#    'y'.append('y'[-2])
+#    'y'.pop(0)
+#show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(), lightToggle()], p]))
 
 def convertToF(temp):
     return temp*(5/9)+32
@@ -153,9 +195,16 @@ y = [0 for xx in x]
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
-    n = np.random.randint(30, 101)
-    y.append(n)
+    #n = np.random.randint(30, 101)
+    s.sendall(b'p')
+    santa = s.recv(1024)
+    n = repr(santa)
+    f = n.split("'")
+    g = f[1]
+    y.append(g)
     y.pop(0)
+    #if n == 62:
+        #y[-1] = nan
     return jsonify(x=x[-300:], y=y[-300:])
 
 
