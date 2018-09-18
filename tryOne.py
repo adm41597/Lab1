@@ -33,8 +33,8 @@ tools = ["hover", "pan"]
 
 p = figure(plot_width=1200, plot_height=800, y_range=(30, 100), tools=tools)
 
-#p.multi_line(xs='x', ys='y', source=source, line_width=2)#, view=view)
-p.line('x', 'y', source=source, line_width=2)#, view=view)
+p.multi_line(xs='x', ys='y', source=source, line_width=2)#, view=view)
+#p.line('x', 'y', source=source, line_width=2)#, view=view)
 #p.circle('x', 'y', source=source, fill_color="white", size=8)#, view=view)
 
 p.x_range.follow_interval = 10
@@ -188,78 +188,84 @@ def hello_world():
     #n = repr(santa)
     #f = n.split("'")
     #h = f[1]
-    y.append(n)
-    y.pop(0)
+    #y.append(n)
+    #y.pop(0)
     print("Value is "+str(n))
     print(str(len(m)))
-    #if n >= 90:
-    #    m.append(1)
-    #    y[-1] = -300
+    if n >= 90:
+        m.append(1)
+        n = -300
     print(str(len(m)))
+
+    y.append(n)
+    y.pop(0)
 
     newx = x[-300:]
     newy = y[-300:]
 
-    #newx2 = []
-    #newy2 = []
+    newx2 = []
+    newy2 = []
 
-    #if len(m) == 0:
-    #    newx2.append(newx[-300:])
-    #    newy2.append(newy[-300:])
+    if len(m) == 0:
+        newx2.append(newx[-300:])
+        newy2.append(newy[-300:])
 
-    #if len(m) != 0:
-    i = 0
-    while i < len(m):
-        print(str(i)+","+str(m[i]))
-        if m[i] == 1:
-            newx = newx[-300:-m[i]-1]
-            newy = newy[-300:-m[i]-1]
-        elif m[i] == 300:
-            newx = newx[-m[i]+1:]
-            newy = newy[-m[i]+1:]
-        else:
-            newx = newx[-300:-m[i]-1]+newx[-m[i]+1:]
-            newy = newy[-300:-m[i]-1]+newy[-m[i]+1:]
+    if len(m) != 0:
+        i = 0
+        while i < len(m):
+            print(str(i)+","+str(m[i]))
+        #if m[i] == 1:
+        #    newx = newx[-300:-m[i]-1]
+        #    newy = newy[-300:-m[i]-1]
+        #elif m[i] == 300:
+        #    newx = newx[-m[i]+1:]
+        #    newy = newy[-m[i]+1:]
+        #else:
+        #    newx = newx[-300:-m[i]-1]+newx[-m[i]+1:]
+        #    newy = newy[-300:-m[i]-1]+newy[-m[i]+1:]
             #logic before this is good
-#            if len(m) == 1:
-#                if m[i] == 1:
-#                    newx2.append(newx[-300:-m[i]])
-#                    newy2.append(newy[-300:-m[i]])
-#                elif m[i] == 300:
-#                    newx2.append(newx[-m[i]+1:])
-#                    newy2.append(newy[-m[i]+1:])
-#                else:
-#                    newx2.append(newx[-300:-m[i]])
-#                    newx2.append(newx[-m[i]+1:])
-#                    newy2.append(newy[-300:-m[i]])
-#                    newy2.append(newy[-m[i]+1:])
-#            elif i == len(m)-1:
-#                if m[i] == 1 and m[i-1]+1 != m[i]:
-#                    newx2.append(newx[-m[i-1]+1:-m[i]])
-#                    newy2.append(newy[-m[i-1]+1:-m[i]])
-#                elif m[i-1]+1 != m[i]:
-#                    newx2.append(newx[-m[i-1]+1:-m[i]])
-#                    newy2.append(newy[-m[i-1]+1:-m[i]])
-#                    newx2.append(newx[-m[i]+1:])
-#                    newy2.append(newy[-m[i]+1:])
-#                else:
-#                    newx2.append(newx[-m[i]+1:])
-#                    newy2.append(newy[-m[i]+1:])
+            if len(m) == 1:
+                if m[i] == 1:
+                    newx2.append(newx[-300:-m[i]])
+                    newy2.append(newy[-300:-m[i]])
+                elif m[i] == 300:
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-m[i]+1:])
+                else:
+                    newx2.append(newx[-300:-m[i]])
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-300:-m[i]])
+                    newy2.append(newy[-m[i]+1:])
+            elif i == len(m)-1:
+                if m[i] == 1 and m[i-1]+2 != m[i]:
+                    newx2.append(newx[-m[i-1]+2:-m[i]])
+                    newy2.append(newy[-m[i-1]+2:-m[i]])
+                elif m[i-1]+2 != m[i]:
+                    newx2.append(newx[-m[i-1]+2:-m[i]])
+                    newy2.append(newy[-m[i-1]+2:-m[i]])
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-m[i]+1:])
+                else:
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-m[i]+1:])
                     # logic to here I think is good
-#            else:
-#                if m[i] != 300:
-#                    newx2.append(newx[-m[i-1]+1:-m[i]])
-#                    newy2.append(newy[-m[i-1]+1:-m[i]])
+            else:
+                if i == 0 and m[i] != 300:
+                    newx2.append(newx[:-m[i]])
+                    newy2.append(newy[:-m[i]])
+                elif m[i] != 300:
+                    newx2.append(newx[-m[i-1]+2:-m[i]])
+                    newy2.append(newy[-m[i-1]+2:-m[i]])
                 # logic after here is good
             m[i] += 1
             if m[i] == 301:
                 del m[i]
             i += 1
-    v = 300 - len(m)
-    return jsonify(x=newx[-v:], y=newy[-v:])
-    #print(str(newx2) + ",/n" + str(newy2))
-    #v = len(newx2)
-    #return jsonify(x=newx2[:v], y=newy2[:v])
+    #v = 300 - len(m)
+    #return jsonify(x=newx[-v:], y=newy[-v:])
+    print(str(newx2) + ",/n" + str(newy2))
+    v = len(newx2)
+    return jsonify(x=newx2[:v], y=newy2[:v])
 
 
 if __name__ == "__main__":
