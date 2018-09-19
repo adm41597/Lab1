@@ -14,10 +14,10 @@ import socket
 HOST = '192.168.1.88'
 PORT = 80
 
-#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#s.connect((HOST, PORT))
-#s.sendall(b'p')
-#data = s.recv(1024)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+s.sendall(b'p')
+data = s.recv(1024)
 
 output_file("line.html")
 
@@ -182,22 +182,22 @@ y = [0 for xx in x]
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
     global m
-    n = np.random.randint(30, 101)
-    #s.sendall(b'p')
-    #santa = s.recv(1024)
-    #n = repr(santa)
-    #f = n.split("'")
-    #h = f[1]
+    #n = np.random.randint(30, 101)
+    s.sendall(b'p')
+    santa = s.recv(1024)
+    n = repr(santa)
+    f = n.split("'")
+    h = f[1]
     #y.append(n)
     #y.pop(0)
     print("Value is "+str(n))
     print(str(len(m)))
-    if n >= 90:
+    if h == 'e':
         m.append(1)
-        n = -300
+        h = -300
     print(str(len(m)))
 
-    y.append(n)
+    y.append(h)
     y.pop(0)
 
     newx = x[-300:]
