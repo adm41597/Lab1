@@ -99,44 +99,44 @@ def sendMessage(num, message):
 
 connect = True
 
-while connect:
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    except socket.error as e:
-        err ="Error creating socket 1: "+str(e)
-        print(err)
-        randomvar = alert(text="No data available", title="Error", button="OK")
-        continue
+#while connect:
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except socket.error as e:
+    err ="Error creating socket 1: "+str(e)
+    print(err)
+    randomvar = alert(text="No data available", title="Error", button="OK")
+    #continue
 
 
-    try:
-        s.connect((HOST, PORT))
-    except socket.error as e:
-        err = "Connection error 2: "+str(e)+"\n(Box and/or ethernet is probably off.)"
-        print(err)
-        randomvar = alert(text="No data available", title="Error", button="OK")
-        s.close()
-        continue
+try:
+    s.connect((HOST, PORT))
+except socket.error as e:
+    err = "Connection error 2: "+str(e)+"\n(Box and/or ethernet is probably off.)"
+    print(err)
+    randomvar = alert(text="No data available", title="Error", button="OK")
+    #s.close()
+    #continue
 
-    try:
-        s.sendall(b'p')
-    except socket.error as e:
-        err = "Error sending data 3: "+str(e)
-        print(err)
-        randomvar = alert(text="No data available", title="Error", button="OK")
-        #s.close()
-        continue
+try:
+    s.sendall(b'p')
+except socket.error as e:
+    err = "Error sending data 3: "+str(e)
+    print(err)
+    randomvar = alert(text="No data available", title="Error", button="OK")
+    #s.close()
+    #continue
 
-    try:
-        data = s.recv(1024)
-    except socket.error as e:
-        err = "Error receiving data 4: "+str(e)
-        print(err)
-        randomvar = alert(text="No data available", title="Error", button="OK")
-        #s.close()
-        continue
-    connect = False
-    break
+try:
+    data = s.recv(1024)
+except socket.error as e:
+    err = "Error receiving data 4: "+str(e)
+    print(err)
+    randomvar = alert(text="No data available", title="Error", button="OK")
+    #s.close()
+    #continue
+connect = False
+#break
 
 nan = float('nan')
 m = []
@@ -244,44 +244,48 @@ def hello_world():
     global s
     #global lightsOn
     check = True
+    check3 = True
     #n = np.random.randint(30, 101)
 
     if check2:
-        while True:
-            try:
-                #if lightsOn == True:
-                    #s.sendall(b'pt')
-                    #lightsOn = False
-                #else:
-                s.sendall(b'p')
-            except ConnectionResetError as e:
-                err = "Error sending data 5: " + str(e)+"\n(Box turned off or ethernet unplugged.)"
-                print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
-                check = False
-                check2 = False
-                #s.close()
-                break
-            except socket.error as e:
-                err = "Error sending data 6: " + str(e)
-                print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
-                check = False
-                check2 = False
-                #s.close()
-                break
+        #while check3:
+        try:
+            #if lightsOn == True:
+                #s.sendall(b'pt')
+                #lightsOn = False
+            #else:
+            s.sendall(b'p')
+        except ConnectionResetError as e:
+            err = "Error sending data 5: " + str(e)+"\n(Box turned off or ethernet unplugged.)"
+            print(err)
+            #randomvar2 = alert(text="No data available", title="Error", button="OK")
+            check = False
+            check2 = False
+            check3 = False
+            #s.close()
+            #break
+        except socket.error as e:
+            err = "Error sending data 6: " + str(e)
+            print(err)
+            #randomvar2 = alert(text="No data available", title="Error", button="OK")
+            check = False
+            check2 = False
+            check3 = False
+            #s.close()
+            #break
 
-            try:
-                santa = s.recv(1024)
-            except socket.error as e:
-                err = "Error receiving data 7: " + str(e)
-                print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
-                check = False
-                check2 = False
-                #s.close()
-                break
-            break
+        try:
+            santa = s.recv(1024)
+        except socket.error as e:
+            err = "Error receiving data 7: " + str(e)
+            print(err)
+            #randomvar2 = alert(text="No data available", title="Error", button="OK")
+            check = False
+            check2 = False
+            check3 = False
+            #s.close()
+            #break
+        #break
     else:
         while True:
             try:
@@ -289,7 +293,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error creating socket 8: " + str(e)
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 break
 
@@ -298,7 +302,7 @@ def hello_world():
             except socket.error as e:
                 err = "Connection error 9: " + str(e) + "\n(Box and/or ethernet is probably off.)"
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 s.close()
                 break
@@ -308,7 +312,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error sending data 10: " + str(e)
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 #s.close()
                 break
@@ -318,7 +322,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error receiving data 11: " + str(e)
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 #s.close()
                 break
@@ -328,14 +332,14 @@ def hello_world():
             except ConnectionResetError as e:
                 err = "Error sending data 12: " + str(e) + "\n(Box turned off or ethernet unplugged.)"
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 #s.close()
                 break
             except socket.error as e:
                 err = "Error sending data 13: " + str(e)
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 #s.close()
                 break
@@ -345,7 +349,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error receiving data 14: " + str(e)
                 print(err)
-                randomvar2 = alert(text="No data available", title="Error", button="OK")
+                #randomvar2 = alert(text="No data available", title="Error", button="OK")
                 check = False
                 #s.close()
                 break
@@ -358,8 +362,8 @@ def hello_world():
         h = f[1]
         #y.append(n)
         #y.pop(0)
-        if h == 'e':
-            randomvar3 = alert(text="Wire is unplugged from box.", title="Error", button="OK")
+        #if h == 'e':
+            #randomvar3 = alert(text="Wire is unplugged from box.", title="Error", button="OK")
         print("Value is "+str(n))
         print(str(len(m)))
     else:
@@ -386,7 +390,7 @@ def hello_world():
     if len(m) != 0:
         i = 0
         while i < len(m):
-            print("i="+str(i)+", m="+str(m[i]))
+            #print("i="+str(i)+", m="+str(m[i]))
         #if m[i] == 1:
         #    newx = newx[-300:-m[i]-1]
         #    newy = newy[-300:-m[i]-1]
