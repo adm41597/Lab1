@@ -8,6 +8,7 @@ import numpy as np
 from datetime import timedelta
 from functools import update_wrapper, wraps
 from six import string_types
+from pymsgbox import *
 
 import socket
 import sys
@@ -91,7 +92,7 @@ try:
 except socket.error as e:
     err ="Error creating socket 1: "+str(e)
     print(err)
-    #show(WidgetBox(errorMessage(err)))
+    alert(text=err, title="Error", button="OK")
     sys.exit(1)
 
 try:
@@ -99,7 +100,7 @@ try:
 except socket.error as e:
     err = "Connection error 2: "+str(e)+"\n(Box and/or ethernet is probably off.)"
     print(err)
-    #show(WidgetBox(errorMessage(err)))
+    alert(text=err, title="Error", button="OK")
     sys.exit(1)
 
 try:
@@ -107,7 +108,7 @@ try:
 except socket.error as e:
     err = "Error sending data 3: "+str(e)
     print(err)
-    #show(WidgetBox(errorMessage(err)))
+    alert(text=err, title="Error", button="OK")
     sys.exit(1)
 
 try:
@@ -115,7 +116,7 @@ try:
 except socket.error as e:
     err = "Error receiving data 4: "+str(e)
     print(err)
-    #show(WidgetBox(errorMessage(err)))
+    alert(text=err, title="Error", button="OK")
     sys.exit(1)
 
 nan = float('nan')
@@ -228,14 +229,14 @@ def hello_world():
             except ConnectionResetError as e:
                 err = "Error sending data 5: " + str(e)+"\n(Box turned off or ethernet unplugged.)"
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 check2 = False
                 break
             except socket.error as e:
                 err = "Error sending data 6: " + str(e)
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 check2 = False
                 break
@@ -245,7 +246,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error receiving data 7: " + str(e)
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 check2 = False
                 break
@@ -257,7 +258,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error creating socket 8: " + str(e)
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
 
@@ -266,8 +267,7 @@ def hello_world():
             except socket.error as e:
                 err = "Connection error 9: " + str(e) + "\n(Box and/or ethernet is probably off.)"
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
-                show(errorMessage(err))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
 
@@ -276,7 +276,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error sending data 10: " + str(e)
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
 
@@ -285,7 +285,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error receiving data 11: " + str(e)
                 print(err)
-                #show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
 
@@ -294,13 +294,13 @@ def hello_world():
             except ConnectionResetError as e:
                 err = "Error sending data 12: " + str(e) + "\n(Box turned off or ethernet unplugged.)"
                 print(err)
-                # show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
             except socket.error as e:
                 err = "Error sending data 13: " + str(e)
                 print(err)
-                # show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
 
@@ -309,7 +309,7 @@ def hello_world():
             except socket.error as e:
                 err = "Error receiving data 14: " + str(e)
                 print(err)
-                # show(WidgetBox(errorMessage(err)))
+                alert(text=err, title="Error", button="OK")
                 check = False
                 break
             check2 = True
@@ -321,6 +321,8 @@ def hello_world():
         h = f[1]
         #y.append(n)
         #y.pop(0)
+        if h == 'e':
+            alert(text="Wire is unplugged from box.", title="Error", button="OK")
         print("Value is "+str(n))
         print(str(len(m)))
     else:
