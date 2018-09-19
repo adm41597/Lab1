@@ -1,6 +1,7 @@
 from bokeh.layouts import layout
 from bokeh.plotting import figure, output_file, show
 from bokeh.models import Button, Slider, TextInput, WidgetBox, AjaxDataSource, Toggle, error, PreText
+from bokeh.models import CDSView, BooleanFilter
 import smtplib
 
 import numpy as np
@@ -12,39 +13,37 @@ import socket
 
 HOST = '192.168.1.88'
 PORT = 80
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 s.sendall(b'p')
 data = s.recv(1024)
 
-
 output_file("line.html")
 
 nan = float('nan')
-x = True
+m = []
 
 source = AjaxDataSource(data_url='http://localhost:5050/data',
                         polling_interval=1000)
-p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
+#source.data = dict(x=[], y=[])
+#booleans = [True if y_val > -200 else False for y_val in source.data['y']]
+#view = CDSView(source=source, filters=[BooleanFilter(booleans)])
+tools = ["hover", "pan"]
 
-#while x:
-#    while 'y'[-1] != nan:
-#        p.line('x', 'y', source=source, line_width=2)
-#        p.circle('x', 'y', source=source, fill_color="white", size=8)
+p = figure(plot_width=1200, plot_height=800, y_range=(30, 100), tools=tools)
 
-#        p.x_range.follow_interval = 10
+p.multi_line(xs='x', ys='y', source=source, line_width=2)#, view=view)
+#p.line('x', 'y', source=source, line_width=2)#, view=view)
+#p.circle('x', 'y', source=source, fill_color="white", size=8)#, view=view)
 
-#        try:
-#            from flask import Flask, jsonify, make_response, request, current_app
-#        except ImportError:
-#            raise ImportError("You need Flask to run this example!")
+p.x_range.follow_interval = 10
 
-#        show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
-#                     [unitToggle(), lightToggle()], p]))
+try:
+    from flask import Flask, jsonify, make_response, request, current_app
+except ImportError:
+    raise ImportError("You need Flask to run this example!")
 
-#    'y'.append('y'[-2])
-#    'y'.pop(0)
 
 try:
     from flask import Flask, jsonify, make_response, request, current_app
@@ -92,27 +91,14 @@ def errorMessage():
                   width=500, height=100)
     return pre
 
-#while x:
-#    while 'y'[-1] != nan:
-p.line('x', 'y', source=source, line_width=2)
-p.circle('x', 'y', source=source, fill_color="white", size=8)
 
-p.x_range.follow_interval = 10
+show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(),
+     lightToggle()], p]))
 
-try:
-    from flask import Flask, jsonify, make_response, request, current_app
-except ImportError:
-    raise ImportError("You need Flask to run this example!")
-
-show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
-                     [unitToggle(), lightToggle()], p]))
-
-#    'y'.append('y'[-2])
-#    'y'.pop(0)
-#show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(), lightToggle()], p]))
 
 def convertToF(temp):
     return temp*(5/9)+32
+
 
 def sendMessage(num, message):
     # smtp server for sending SMS
@@ -195,17 +181,91 @@ y = [0 for xx in x]
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
+    global m
     #n = np.random.randint(30, 101)
     s.sendall(b'p')
     santa = s.recv(1024)
     n = repr(santa)
     f = n.split("'")
     h = f[1]
+    #y.append(n)
+    #y.pop(0)
+    print("Value is "+str(n))
+    print(str(len(m)))
+    if h == 'e':
+        m.append(1)
+        h = -300
+    print(str(len(m)))
+
     y.append(h)
     y.pop(0)
-    #if n == 62:
-        #y[-1] = nan
-    return jsonify(x=x[-300:], y=y[-300:])
+
+    newx = x[-300:]
+    newy = y[-300:]
+
+    newx2 = []
+    newy2 = []
+
+    if len(m) == 0:
+        newx2.append(newx[-300:])
+        newy2.append(newy[-300:])
+
+    if len(m) != 0:
+        i = 0
+        while i < len(m):
+            print(str(i)+","+str(m[i]))
+        #if m[i] == 1:
+        #    newx = newx[-300:-m[i]-1]
+        #    newy = newy[-300:-m[i]-1]
+        #elif m[i] == 300:
+        #    newx = newx[-m[i]+1:]
+        #    newy = newy[-m[i]+1:]
+        #else:
+        #    newx = newx[-300:-m[i]-1]+newx[-m[i]+1:]
+        #    newy = newy[-300:-m[i]-1]+newy[-m[i]+1:]
+            #logic before this is good
+            if len(m) == 1:
+                if m[i] == 1:
+                    newx2.append(newx[-300:-m[i]])
+                    newy2.append(newy[-300:-m[i]])
+                elif m[i] == 300:
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-m[i]+1:])
+                else:
+                    newx2.append(newx[-300:-m[i]])
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-300:-m[i]])
+                    newy2.append(newy[-m[i]+1:])
+            elif i == len(m)-1:
+                if m[i] == 1 and m[i-1]+2 != m[i]:
+                    newx2.append(newx[-m[i-1]+2:-m[i]])
+                    newy2.append(newy[-m[i-1]+2:-m[i]])
+                elif m[i-1]+2 != m[i]:
+                    newx2.append(newx[-m[i-1]+2:-m[i]])
+                    newy2.append(newy[-m[i-1]+2:-m[i]])
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-m[i]+1:])
+                else:
+                    newx2.append(newx[-m[i]+1:])
+                    newy2.append(newy[-m[i]+1:])
+                    # logic to here I think is good
+            else:
+                if i == 0 and m[i] != 300:
+                    newx2.append(newx[:-m[i]])
+                    newy2.append(newy[:-m[i]])
+                elif m[i] != 300:
+                    newx2.append(newx[-m[i-1]+2:-m[i]])
+                    newy2.append(newy[-m[i-1]+2:-m[i]])
+                # logic after here is good
+            m[i] += 1
+            if m[i] == 301:
+                del m[i]
+            i += 1
+    #v = 300 - len(m)
+    #return jsonify(x=newx[-v:], y=newy[-v:])
+    print(str(newx2) + ",/n" + str(newy2))
+    v = len(newx2)
+    return jsonify(x=newx2[:v], y=newy2[:v])
 
 
 if __name__ == "__main__":
