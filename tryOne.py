@@ -1,7 +1,7 @@
 from bokeh.layouts import layout
 from bokeh.plotting import figure, output_file, show
 from bokeh.models import Button, Slider, TextInput, WidgetBox, AjaxDataSource, Toggle, error, PreText
-from bokeh.models import CDSView, BooleanFilter
+from bokeh.models import Paragraph
 import smtplib
 
 import numpy as np
@@ -10,90 +10,62 @@ from functools import update_wrapper, wraps
 from six import string_types
 
 import socket
+import sys
 
 HOST = '192.168.1.88'
 PORT = 80
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
-s.sendall(b'p')
-data = s.recv(1024)
-
 output_file("line.html")
 
-nan = float('nan')
-m = []
-
-source = AjaxDataSource(data_url='http://localhost:5050/data',
-                        polling_interval=1000)
-#source.data = dict(x=[], y=[])
-#booleans = [True if y_val > -200 else False for y_val in source.data['y']]
-#view = CDSView(source=source, filters=[BooleanFilter(booleans)])
-tools = ["hover", "pan"]
-
-p = figure(plot_width=1200, plot_height=800, y_range=(30, 100), tools=tools)
-
-p.multi_line(xs='x', ys='y', source=source, line_width=2)#, view=view)
-#p.line('x', 'y', source=source, line_width=2)#, view=view)
-#p.circle('x', 'y', source=source, fill_color="white", size=8)#, view=view)
-
-p.x_range.follow_interval = 10
-
-try:
-    from flask import Flask, jsonify, make_response, request, current_app
-except ImportError:
-    raise ImportError("You need Flask to run this example!")
-
-
-try:
-    from flask import Flask, jsonify, make_response, request, current_app
-except ImportError:
-    raise ImportError("You need Flask to run this example!")
 
 def highSlider():
     slider1 = Slider(start=10, end=50, value=30, step=.5, title ="High Temp")
     return slider1
 
+
 def lowSlider():
     slider2 = Slider(start=10, end=50, value=30, step=.5, title="Low Temp")
     return slider2
+
 
 def text():
     text_input = TextInput(value="test", title="Phone#")
     return text_input
 
+
 def lowText():
     text_input = TextInput(value="It is cold.", title="Low Temperature Message")
     return text_input
+
 
 def highText():
     text_input = TextInput(value="It is hot.", title="High Temperature Message")
     return text_input
 
+
 def unitToggle():
     toggle1 = Toggle(label="Units", button_type="success")
     return toggle1
+
 
 def lightToggle():
     toggle2 = Toggle(label="Toggle Lights", button_type="success")
     return toggle2
 
+
 def temperature():
     button1 = Button(label="Temperature"+"°C", button_type="success")
     return button1
 
-#used to replace whats in layout if error occurs
-def errorMessage():
+
+# used to replace whats in layout if error occurs
+def errorMessage(errText):
     pre = PreText(text="""Your text is initialized with the 'text' argument.
 
     The remaining Paragraph arguments are 'width' and 'height'. For this example,
     those values are 500 and 100 respectively.""",
                   width=500, height=100)
+    pre = Paragraph(text=errText, width=500, height=100)
     return pre
-
-
-show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(),
-     lightToggle()], p]))
 
 
 def convertToF(temp):
@@ -112,6 +84,66 @@ def sendMessage(num, message):
     server.sendmail('logan.brownie66@gmail.com', num+'@email.uscc.net', message)
 
     server.quit()
+
+
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except socket.error as e:
+    err ="Error creating socket 1: "+str(e)
+    print(err)
+    #show(WidgetBox(errorMessage(err)))
+    sys.exit(1)
+
+try:
+    s.connect((HOST, PORT))
+except socket.error as e:
+    err = "Connection error 2: "+str(e)+"\n(Box and/or ethernet is probably off.)"
+    print(err)
+    #show(WidgetBox(errorMessage(err)))
+    sys.exit(1)
+
+try:
+    s.sendall(b'p')
+except socket.error as e:
+    err = "Error sending data 3: "+str(e)
+    print(err)
+    #show(WidgetBox(errorMessage(err)))
+    sys.exit(1)
+
+try:
+    data = s.recv(1024)
+except socket.error as e:
+    err = "Error receiving data 4: "+str(e)
+    print(err)
+    #show(WidgetBox(errorMessage(err)))
+    sys.exit(1)
+
+nan = float('nan')
+m = []
+check2 = True
+
+source = AjaxDataSource(data_url='http://localhost:5050/data',
+                        polling_interval=1000)
+tools = ["hover", "pan", "wheel_zoom", "reset"]
+
+p = figure(plot_width=1200, plot_height=800, y_range=(10, 50), tools=tools, x_axis_label="Seconds Ago",
+           y_axis_label="Temp, °C", y_axis_location="right")
+
+p.multi_line(xs='x', ys='y', source=source, line_width=2)
+
+p.x_range.start = -305
+p.x_range.end = 0
+p.x_range.follow_interval = 10
+
+try:
+    from flask import Flask, jsonify, make_response, request, current_app
+except ImportError:
+    raise ImportError("You need Flask to run this example!")
+
+
+show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(),
+     lightToggle()], p]))
+
 
 #########################################################
 # Flask server related
@@ -175,23 +207,125 @@ def crossdomain(origin=None, methods=None, headers=None,
 
 app = Flask(__name__)
 
-x = list(range(0, 300))
+x = list(range(-300, 1))
 y = [0 for xx in x]
+m = list(range(0, 301))
+m.reverse()
 
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
     global m
+    global check2
+    global s
+    check = True
     #n = np.random.randint(30, 101)
-    s.sendall(b'p')
-    santa = s.recv(1024)
-    n = repr(santa)
-    f = n.split("'")
-    h = f[1]
-    #y.append(n)
-    #y.pop(0)
-    print("Value is "+str(n))
-    print(str(len(m)))
+
+    if check2:
+        while True:
+            try:
+                s.sendall(b'p')
+            except ConnectionResetError as e:
+                err = "Error sending data 5: " + str(e)+"\n(Box turned off or ethernet unplugged.)"
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                check = False
+                check2 = False
+                break
+            except socket.error as e:
+                err = "Error sending data 6: " + str(e)
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                check = False
+                check2 = False
+                break
+
+            try:
+                santa = s.recv(1024)
+            except socket.error as e:
+                err = "Error receiving data 7: " + str(e)
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                check = False
+                check2 = False
+                break
+            break
+    else:
+        while True:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            except socket.error as e:
+                err = "Error creating socket 8: " + str(e)
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                check = False
+                break
+
+            try:
+                s.connect((HOST, PORT))
+            except socket.error as e:
+                err = "Connection error 9: " + str(e) + "\n(Box and/or ethernet is probably off.)"
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                show(errorMessage(err))
+                check = False
+                break
+
+            try:
+                s.sendall(b'p')
+            except socket.error as e:
+                err = "Error sending data 10: " + str(e)
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                check = False
+                break
+
+            try:
+                data = s.recv(1024)
+            except socket.error as e:
+                err = "Error receiving data 11: " + str(e)
+                print(err)
+                #show(WidgetBox(errorMessage(err)))
+                check = False
+                break
+
+            try:
+                s.sendall(b'p')
+            except ConnectionResetError as e:
+                err = "Error sending data 12: " + str(e) + "\n(Box turned off or ethernet unplugged.)"
+                print(err)
+                # show(WidgetBox(errorMessage(err)))
+                check = False
+                break
+            except socket.error as e:
+                err = "Error sending data 13: " + str(e)
+                print(err)
+                # show(WidgetBox(errorMessage(err)))
+                check = False
+                break
+
+            try:
+                santa = s.recv(1024)
+            except socket.error as e:
+                err = "Error receiving data 14: " + str(e)
+                print(err)
+                # show(WidgetBox(errorMessage(err)))
+                check = False
+                break
+            check2 = True
+            break
+
+    if check:
+        n = repr(santa)
+        f = n.split("'")
+        h = f[1]
+        #y.append(n)
+        #y.pop(0)
+        print("Value is "+str(n))
+        print(str(len(m)))
+    else:
+        h = 'e'
+
     if h == 'e':
         m.append(1)
         h = -300
@@ -213,7 +347,7 @@ def hello_world():
     if len(m) != 0:
         i = 0
         while i < len(m):
-            print(str(i)+","+str(m[i]))
+            print("i="+str(i)+", m="+str(m[i]))
         #if m[i] == 1:
         #    newx = newx[-300:-m[i]-1]
         #    newy = newy[-300:-m[i]-1]
@@ -253,7 +387,7 @@ def hello_world():
                 if i == 0 and m[i] != 300:
                     newx2.append(newx[:-m[i]])
                     newy2.append(newy[:-m[i]])
-                elif m[i] != 300:
+                elif m[i] != 300 and m[i-1] != m[i] and m[i-1]+2 != m[i]:
                     newx2.append(newx[-m[i-1]+2:-m[i]])
                     newy2.append(newy[-m[i-1]+2:-m[i]])
                 # logic after here is good
