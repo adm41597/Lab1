@@ -108,7 +108,6 @@ while connect:
         randomvar = alert(text="No data available", title="Error", button="OK")
         continue
 
-
     try:
         s.connect((HOST, PORT))
     except socket.error as e:
@@ -283,7 +282,7 @@ def hello_world():
             check = False
             check2 = False
             check3 = False
-            #s.close()
+            s.close()
             #break
         #break
     else:
