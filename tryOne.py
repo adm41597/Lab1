@@ -1,6 +1,11 @@
-from bokeh.layouts import layout
+from bokeh.layouts import column,layout
 from bokeh.plotting import figure, output_file, show
-from bokeh.models import Button, Slider, TextInput, AjaxDataSource, Toggle, error, Paragraph
+from bokeh.models import Button, Slider, TextInput, AjaxDataSource, Toggle, CustomJS, Paragraph
+from bokeh.events import ButtonClick
+from bokeh.io import curdoc
+from bokeh.embed import server_session, components
+from bokeh.client import pull_session
+from bokeh.resources import INLINE
 import smtplib
 import re
 
@@ -9,23 +14,15 @@ from datetime import timedelta
 from functools import update_wrapper, wraps
 from six import string_types
 
+
+
+#  cant repeat show, buttons dont work, and values arent updating unless I call show but need alternate solution
+
 output_file("line.html")
 
 
-source = AjaxDataSource(data_url='http://localhost:5050/data',
-                        polling_interval=100)
-
-
-p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
-#p.line('x', 'y', source=source, line_width=2)
-#p.circle('x', 'y', source=source, fill_color="white", size=8)
-
-nan=float('nan')
-
-p.x_range.follow_interval = 10
-
 try:
-    from flask import Flask, jsonify, make_response, request, current_app
+    from flask import Flask, jsonify, make_response, request, current_app, render_template
 except ImportError:
     raise ImportError("You need Flask to run this example!")
 
@@ -62,21 +59,23 @@ def temperature():
     return button1
 
 #used to replace whats in layout if error occurs
-errorMessage = " "
-def errorMessage(message):
-    pre = Paragraph(text=message, width=500, height=100)
-    return pre
+#errorMessage = " "
+#def errorMessage(message):
+    #pre = Paragraph(text=message, width=500, height=100)
+    #return pre
+
+#old way
+#show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
+             #[unitToggle(), lightToggle()], p]))
 
 
-show(layout([[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()],
-             [unitToggle(), lightToggle()], p]))
 
-
-def my_toggle_handler():
+#def callback(event):
     #code to change light toggle with socket
-    lowSlider().value= 45.0
+    #print("Test")
 
-lightToggle().on_click(my_toggle_handler)
+#lightToggle().js_on_event(ButtonClick, CustomJS(code='console.log("JS:Click")'))
+
 
 #########################################################
 # Flask server related
@@ -147,6 +146,30 @@ hasChanged = True
 currValue = 0
 high = False
 
+@app.route('/')
+def home():
+    source = AjaxDataSource(data_url='http://localhost:5050/data',
+                            polling_interval=100)
+
+
+    p = figure(plot_width=1200, plot_height=800, y_range=(30, 100))
+    p.line(x='x', y='y', source=source, line_width=2)
+    p.circle(x='x', y='y', source=source, fill_color="white", size=8)
+
+    nan=float('nan')
+
+    p.x_range.follow_interval = 10
+    plot = layout(
+        [[temperature()], [text(), highText(), lowText()], [highSlider(), lowSlider()], [unitToggle(), lightToggle()],
+         p])
+    script, div = components(plot)
+    return render_template('tryOne.html',
+                           script=script,
+                           div=div,
+                           js_resources=INLINE.render_js(),
+                           css_resources=INLINE.render_css())
+
+
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def hello_world():
@@ -154,25 +177,25 @@ def hello_world():
     n = np.random.randint(30, 101)
 
     #might be backwards
-    if unitToggle().active:
-        n = convertToF(n)
-        text().value = n + "°F"
-    else:
-        text().value = n + "°C"
-    global hasChanged, currValue, high
-    if hasChanged and n > highSlider().value:
-        sendMessage(text().value, highText().value)
-        currValue=n
-        hasChanged = False
-    elif hasChanged and n < lowSlider().value:
-        sendMessage(text().value, lowText().value)
-        currValue = n
-        hasChanged = False
+    #if unitToggle().active:
+    #    n = convertToF(n)
+    #    text().value = str(n) + "°F"
+    #else:
+    #    text().value = str(n) + "°C"
+    #global hasChanged, currValue, high
+    #if hasChanged and n > highSlider().value and n < 110:
+    #    sendMessage(text().value, highText().value)
+    #    currValue=n
+    #    hasChanged = False
+    #elif hasChanged and n < lowSlider().value and n>-100:
+    #    sendMessage(text().value, lowText().value)
+    #    currValue = n
+    #    hasChanged = False
 
-    if high and n <= currValue-5:
-        hasChanged = True
-    elif not high and n >= currValue+5:
-        hasChanged = True
+    #if high and n <= currValue-5:
+    #    hasChanged = True
+    #elif not high and n >= currValue+5:
+    #    hasChanged = True
     y.append(n)
     y.pop(0)
     return jsonify(x=x[-300:], y=y[-300:])
@@ -194,7 +217,10 @@ def sendMessage(num, message):
         server.sendmail('logan.brownie66@gmail.com', num+'@email.uscc.net', message)
 
         server.quit()
+    return
+
 
 
 if __name__ == "__main__":
+
     app.run(port=5050)
